@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "myoboku"
+version = "0.1.0"
+description = ""
+authors = ["PN-picsell <pierre-nicolas@picsellia.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+Django = "^4.1.4"
+python-dotenv = "^0.21.0"
+django-ninja = "^0.20.0"
+celery = "^5.2.7"
+psycopg2 = "^2.9.5"
+orjson = "^3.8.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
