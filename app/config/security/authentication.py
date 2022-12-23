@@ -23,7 +23,6 @@ class TokenAuthentication(HttpBearer):
             raise UnauthorizedException()
 
         request.user = user_token.user
-
         return user_token
 
 

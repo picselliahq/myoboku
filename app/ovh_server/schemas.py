@@ -2,12 +2,12 @@ from ninja import Schema
 
 
 class ResourceSchema(Schema):
-    nb_gpu: int
-    nb_cpu: int
+    cpu: int
+    gpu: int
 
 
 class JobInputSchema(Schema):
     image: str
     resources: ResourceSchema
-    env: dict
+    env: list
     volumes: list
