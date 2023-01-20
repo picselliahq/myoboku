@@ -7,6 +7,7 @@ from config.celery import app
 from config.sdk import init_and_retrieve_client, send_log_file
 from django.utils import timezone
 from essential_generators import DocumentGenerator
+from picsellia import Client
 
 
 @app.task(name="launch_job_task")
@@ -16,13 +17,13 @@ def launch_job(ovh_job_id):
     client = init_and_retrieve_client(ovh_job)
     print(client)
     picsellia_job = client.get_job_by_id(ovh_job.env["job_id"])
-    picsellia_job.send_logging("--#--part-0", "--#--part-0")
+    log_section = f"--#--part-0"
     sentence_generator = DocumentGenerator()
     task_length = get_task_length(ovh_job)
     logs = {}
-    for i in range(1, task_length):
-        log_section = f"--#--part-{i}"
+    for i in range(0, task_length):
         if i % 10 == 0:
+            log_section = f"--#--part-{i}"
             picsellia_job.send_logging(f"--#--part-{i}", f"--#--part-{i}")
             logs[log_section] = {
                 "datetime": str(datetime.now().isoformat()),
@@ -33,7 +34,9 @@ def launch_job(ovh_job_id):
             picsellia_job.send_logging(log_string, "--#--coucou")
             logs[log_section]["logs"][str(picsellia_job.line_nb)] = log_string
         sleep(1)
-
+    dataset = client.get_dataset_by_id(ovh_job.env["dataset_id"])
+    dataset_version = dataset.get_version_by_id(ovh_job.env["target_version_id"])
+    dataset_version.update(ready=True)
     picsellia_job.update_status(JobStatusEnum.SUCCESS)
     send_log_file(picsellia_job, logs)
     ovh_job.end_time = timezone.now()
@@ -41,7 +44,7 @@ def launch_job(ovh_job_id):
 
 
 def get_task_length(job: OVHJob) -> int:
-    image_name = job.env["image"]
+    image_name = job.image
     if "small" in image_name:
         return 10
     elif "big" in image_name:
@@ -49,4 +52,4 @@ def get_task_length(job: OVHJob) -> int:
     elif "mega" in image_name:
         return 1000
     else:
-        return 20
+        return 3

@@ -7,7 +7,7 @@ def init_and_retrieve_client(job) -> Client:
     client = Client(
         api_token=job.env["api_token"],
         organization_id=job.env["organization_id"],
-        host=job.env["host"],
+        host="http://127.0.0.1:8000",
     )
     return client
 
