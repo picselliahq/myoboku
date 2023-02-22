@@ -7,15 +7,12 @@ from config.celery import app
 from config.sdk import init_and_retrieve_client, send_log_file
 from django.utils import timezone
 from essential_generators import DocumentGenerator
-from picsellia import Client
 
 
 @app.task(name="launch_job_task")
 def launch_job(ovh_job_id):
     ovh_job = OVHJob.objects.get(id=ovh_job_id)
-    print(ovh_job)
     client = init_and_retrieve_client(ovh_job)
-    print(client)
     picsellia_job = client.get_job_by_id(ovh_job.env["job_id"])
     log_section = f"--#--part-0"
     sentence_generator = DocumentGenerator()
@@ -31,12 +28,9 @@ def launch_job(ovh_job_id):
             }
         else:
             log_string = sentence_generator.sentence()
-            picsellia_job.send_logging(log_string, "--#--coucou")
+            picsellia_job.send_logging(log_string, log_section)
             logs[log_section]["logs"][str(picsellia_job.line_nb)] = log_string
         sleep(1)
-    dataset = client.get_dataset_by_id(ovh_job.env["dataset_id"])
-    dataset_version = dataset.get_version_by_id(ovh_job.env["target_version_id"])
-    dataset_version.update(ready=True)
     picsellia_job.update_status(JobStatusEnum.SUCCESS)
     send_log_file(picsellia_job, logs)
     ovh_job.end_time = timezone.now()
