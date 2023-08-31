@@ -1,12 +1,15 @@
 from datetime import datetime
 from time import sleep
 
-from config.enums import JobStatusEnum
+from picsellia.types.enums import JobRunStatus, JobStatus
+
+from config.enums import JobType
 from ovh_server.models import OVHJob
 from config.celery import app
-from config.sdk import init_and_retrieve_client, send_log_file
+from config.sdk import init_and_retrieve_client, send_log_file, store_experiment_logs
 from django.utils import timezone
 from essential_generators import DocumentGenerator
+from picsellia import DatasetVersion
 
 
 @app.task(name="launch_job_task")
@@ -14,6 +17,26 @@ def launch_job(ovh_job_id):
     ovh_job = OVHJob.objects.get(id=ovh_job_id)
     client = init_and_retrieve_client(ovh_job)
     picsellia_job = client.get_job_by_id(ovh_job.env["job_id"])
+    print(picsellia_job.sync())
+    if picsellia_job.sync()["type"] == JobType.PROCESS_DATASET_VERSION:
+        run_dataset_version_processing_job(client, ovh_job, picsellia_job)
+    else:
+        run_experiment_processing_job(client, ovh_job, picsellia_job)
+
+
+def run_dataset_version_processing_job(client, ovh_job, picsellia_job):
+    parameters = picsellia_job.sync()
+    processing_job = parameters["dataset_version_processing_job"][
+        "output_dataset_version_id"
+    ]
+    input_dataset_id = parameters["dataset_version_processing_job"][
+        "input_dataset_version_id"
+    ]
+    input_dataset: DatasetVersion = client.get_dataset_version_by_id(input_dataset_id)
+    target_dataset = client.get_dataset_version_by_id(processing_job)
+    picsellia_job.update_job_run_with_status(JobRunStatus.RUNNING)
+    data = input_dataset.list_assets().as_multidata()
+    target_dataset.add_data(data)
     log_section = f"--#--part-0"
     sentence_generator = DocumentGenerator()
     task_length = get_task_length(ovh_job)
@@ -31,8 +54,39 @@ def launch_job(ovh_job_id):
             picsellia_job.send_logging(log_string, log_section)
             logs[log_section]["logs"][str(picsellia_job.line_nb)] = log_string
         sleep(1)
-    picsellia_job.update_status(JobStatusEnum.SUCCESS)
+    picsellia_job.update_job_run_with_status(JobRunStatus.SUCCEEDED)
     send_log_file(picsellia_job, logs)
+    ovh_job.end_time = timezone.now()
+    ovh_job.save()
+
+
+def run_experiment_processing_job(client, ovh_job, picsellia_job):
+    parameters = picsellia_job.sync()
+    experiment_id = parameters["experiment_job"]["experiment_id"]
+    experiment = client.get_experiment_by_id(experiment_id)
+    # picsellia_job.update_job_run_with_status(JobRunStatus.RUNNING)
+    log_section = f"--#--part-0"
+    sentence_generator = DocumentGenerator()
+    task_length = get_task_length(ovh_job)
+    logs = {}
+    for i in range(0, task_length):
+        if i % 10 == 0:
+            log_section = f"--#--part-{i}"
+            # picsellia_job.send_logging(f"--#--part-{i}", f"--#--part-{i}")
+            experiment.send_logging(f"--#--part-{i}", f"--#--part-{i}")
+            logs[log_section] = {
+                "datetime": str(datetime.now().isoformat()),
+                "logs": {},
+            }
+        else:
+            log_string = sentence_generator.sentence()
+            # picsellia_job.send_logging(log_string, log_section)
+            experiment.send_logging(log_string, log_section)
+            logs[log_section]["logs"][str(experiment.line_nb)] = log_string
+        sleep(1)
+    # picsellia_job.update_job_run_with_status(JobRunStatus.SUCCEEDED)
+    experiment.update_job_status(JobStatus.SUCCESS)
+    store_experiment_logs(experiment, logs)
     ovh_job.end_time = timezone.now()
     ovh_job.save()
 

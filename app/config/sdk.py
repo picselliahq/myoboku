@@ -1,4 +1,4 @@
-from picsellia import Client
+from picsellia import Client, Job, Experiment
 from datetime import datetime
 import json
 
@@ -12,7 +12,7 @@ def init_and_retrieve_client(job) -> Client:
     return client
 
 
-def send_log_file(picsellia_job, logs: dict):
+def send_log_file(picsellia_job: Job, logs: dict):
     logs_path = "{}-logs.json".format(picsellia_job.id)
     with open(logs_path, "w") as f:
         logs["exit_code"] = {
@@ -20,4 +20,15 @@ def send_log_file(picsellia_job, logs: dict):
             "datetime": str(datetime.now().isoformat()),
         }
         json.dump(logs, f)
-    picsellia_job.store_logs_file(logs_path)
+    picsellia_job.store_logging_file(logs_path)
+
+
+def store_experiment_logs(experiment: Experiment, logs: dict):
+    logs_path = "{}-logs.json".format(experiment.id)
+    with open(logs_path, "w") as f:
+        logs["exit_code"] = {
+            "exit_code": "0",
+            "datetime": str(datetime.now().isoformat()),
+        }
+        json.dump(logs, f)
+    experiment.store_logging_file(logs_path)

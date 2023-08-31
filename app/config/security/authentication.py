@@ -10,7 +10,6 @@ from userauth.models import Token
 
 class TokenAuthentication(HttpBearer):
     def authenticate(self, request: HttpRequest, token: Optional[str]) -> Optional[Any]:
-
         if not token:
             raise UnauthorizedException()
 

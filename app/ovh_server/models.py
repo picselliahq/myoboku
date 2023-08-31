@@ -3,7 +3,7 @@ from uuid import UUID
 from uuid import uuid4
 from django.utils import timezone
 
-from config.enums import JobStatusEnum
+from config.enums import JobRunStatus
 
 
 class OVHJob(models.Model):
@@ -14,8 +14,8 @@ class OVHJob(models.Model):
     env: dict = models.JSONField(default=dict)
     nb_cpu: int = models.PositiveIntegerField(default=8)
     nb_gpu: int = models.PositiveIntegerField(default=0)
-    status: JobStatusEnum = models.CharField(
-        max_length=16, choices=JobStatusEnum.choices, default=JobStatusEnum.PENDING
+    status: JobRunStatus = models.CharField(
+        max_length=16, choices=JobRunStatus.choices, default=JobRunStatus.PENDING
     )
     task_id: UUID = models.UUIDField(default=uuid4)
 
