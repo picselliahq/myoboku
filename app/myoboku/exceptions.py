@@ -24,3 +24,10 @@ class ForbiddenException(PicselliaAPIException):
         super().__init__(
             message="Insufficient rights", status=HTTPStatus.FORBIDDEN, *args, **kwargs
         )
+
+
+class BadRequestException(PicselliaAPIException):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(
+            message="Bad Request", status=HTTPStatus.BAD_REQUEST, *args, **kwargs
+        )
