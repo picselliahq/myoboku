@@ -1,5 +1,7 @@
 import logging
 from http import HTTPStatus
+from threading import Thread
+from uuid import UUID
 
 from django.db import transaction
 from django.utils import timezone
@@ -53,15 +55,11 @@ def launch_job(request, payload: JobInput):
     docker_environment = [f"{key}={value}" for key, value in payload.env.items()]
 
     try:
-        container = docker_client.containers.run(
-            payload.docker_image_name,
-            environment=docker_environment,
-            stdout=True,
-            stderr=True,
-            detach=True,
-            labels={"myoboku": settings.INSTANCE_NAME},
+        thread = Thread(
+            target=_run_docker,
+            args=(job.id, payload.docker_image_name, docker_environment),
         )
-        logger.info(f"Image {payload.docker_image_name} pulled and run detached")
+        thread.start()
     except Exception as e:
         logger.exception(
             f"Something went wrong while running {payload.docker_image_name}"
@@ -71,9 +69,6 @@ def launch_job(request, payload: JobInput):
         raise BadRequestException(
             detail=[f"Docker image could not be run: {e!r}"]
         ) from e
-
-    job.container_id = container.id
-    job.save()
 
     logger.info(f"Launching {job} with image {payload.docker_image_name}")
     return HTTPStatus.CREATED, job
@@ -119,6 +114,22 @@ def get_logs(request, job_id: str):
         logs = raw_logs[2:-1].split("\\n")
 
     return HTTPStatus.OK, JobLogsSchema(logs=logs)
+
+
+def _run_docker(job_id: UUID, docker_image_name: str, docker_environment: list):
+    logger.info(f"Starting to pull {docker_image_name}..")
+    container = docker_client.containers.run(
+        docker_image_name,
+        environment=docker_environment,
+        stdout=True,
+        stderr=True,
+        detach=True,
+        labels={"myoboku": settings.INSTANCE_NAME},
+    )
+    logger.info(f"Image {docker_image_name} pulled and run detached")
+    job = Job.objects.get(id=job_id)
+    job.container_id = container.id
+    job.save()
 
 
 def _get_container(job: Job):
