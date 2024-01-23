@@ -71,7 +71,7 @@ TIME_ZONE = "UTC"
 USE_I18N = False
 USE_TZ = True
 
-MAXIMUM_RUNNING_CONTAINER = os.getenv("MAXIMUM_RUNNING_CONTAINERS", 1)
+MAXIMUM_RUNNING_CONTAINER = int(os.getenv("MAXIMUM_RUNNING_CONTAINERS", 1))
 INSTANCE_NAME = os.getenv("INSTANCE_NAME")
 
 # ================================================================================
