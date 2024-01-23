@@ -1,6 +1,7 @@
 import re
 import secrets
 import sys
+from urllib.parse import urlparse
 
 import orjson
 import requests
@@ -12,17 +13,14 @@ def register_connector(organization_id, user_api_token, instance_name, instance_
     url = f"{host}/sdk/organization/{organization_id}/myoboku/register"
     payload = {"name": instance_name, "url": instance_url}
     headers = {"Authorization": f"Bearer {user_api_token}"}
-    content = call_picsellia(url, payload, headers)
-    authentication_token = content["token"]
-    secret_key = secrets.token_hex(30)
-    return authentication_token, secret_key
+    response = call_picsellia(url, payload, headers)
+    return response.json()["token"]
 
 
 def call_picsellia(url, payload, headers):
     response = requests.post(url=url, data=orjson.dumps(payload), headers=headers)
     response.raise_for_status()
-    content = response.json()
-    return content
+    return response
 
 
 def update_default_connector(organization_id, user_api_token, instance_name):
@@ -62,22 +60,23 @@ if __name__ == "__main__":
         sys.exit(1)
 
     instance_host = instance_url.removesuffix("/")
-    instance_domain = instance_host.split("/")[-1]
-    authentication_token, secret_key = register_connector(
+    instance_domain = urlparse(instance_host).hostname
+    authentication_token = register_connector(
         organization_id, user_api_token, instance_name, instance_url
     )
+    secret_key = secrets.token_hex(30)
     update_default_connector(organization_id, user_api_token, instance_name)
 
     with open("./app/config/.env", "w+") as f:
         f.write(f"AUTHENTICATION_TOKEN={authentication_token}\n")
-        f.write(f"ORGANIZATION_ID={authentication_token}\n")
+        f.write(f"ORGANIZATION_ID={organization_id}\n")
         f.write("DEBUG=False\n")
         f.write("LOGGERS_DEBUG=\n")
         f.write("DJANGO_LOGLEVEL=INFO\n")
         f.write(f"SECRET_KEY={secret_key}\n")
         f.write(f"INSTANCE_NAME={instance_name}\n")
         f.write(f"PICSELLIA_URL={host}\n")
-        f.write(f"ALLOWED_HOSTS={host_domain},{instance_domain}\n")
+        f.write(f"ALLOWED_HOSTS={instance_domain}\n")
 
     print(f"Myoboku {instance_name} set up!")
 
