@@ -1,0 +1,14 @@
+[Unit]
+Description=Picsellia Myoboku service
+After=network.target
+
+[Service]
+Type=exec
+WorkingDirectory=/path/to/myoboku
+ExecStart=/path/to/poetry run scripts/run.py
+User=%%USER%%
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
