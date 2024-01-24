@@ -28,8 +28,11 @@ class DockerContainerEnum(enum.Enum):
     RESTARTING = "restarting"
     REMOVING = "removing"
     PAUSED = "paused"
-    EXITED = "exited"
     DEAD = "dead"
+
+    EXITED = "exited"
+    SUCCESS = "success"
+    FAILED = "failed"
 
 
 class JobStatusSchema(Schema):

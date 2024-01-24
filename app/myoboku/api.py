@@ -102,7 +102,7 @@ def get_job(request, job_id: str):
 def get_job_status(request, job_id: str):
     job = Job.objects.get(id=job_id)
     container = _get_container(job)
-    status = DockerContainerEnum(container.status)
+    status = _get_container_status(container)
     return HTTPStatus.OK, JobStatusSchema(status=status)
 
 
@@ -129,6 +129,25 @@ def _get_container(job: Job):
         return docker_client.containers.get(job.container_id)
     except NotFound:
         raise BadRequestException(detail=["This job is not bound to a live container"])
+
+
+def _get_container_status(container) -> DockerContainerEnum:
+    status = DockerContainerEnum(container.status)
+    if status != DockerContainerEnum.EXITED:
+        return status
+
+    if _get_status_code(container) == 0:
+        return DockerContainerEnum.SUCCESS
+    else:
+        return DockerContainerEnum.FAILED
+
+
+def _get_status_code(container) -> int:
+    try:
+        return int(container.attrs["State"]["ExitCode"])
+    except KeyError:
+        logger.exception(f"ExitCode could not be retrieved from container {container}")
+        return -1
 
 
 def _is_overwhelmed():
