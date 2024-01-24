@@ -1,0 +1,30 @@
+[tool.isort]
+profile = "black"
+src_paths = ["app"]
+
+[tool.pycln]
+all = true
+
+[tool.poetry]
+name = "myoboku"
+version = "0.1.0"
+description = ""
+authors = ["PN-picsell <pierre-nicolas@picsellia.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+Django = "^4.2"
+python-dotenv = "^1.0.1"
+django-ninja = "^1.1.0"
+psycopg2-binary = "^2.9.9"
+orjson = "^3.9.12"
+essential-generators = "^1.0"
+docker = "^7.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.6.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
