@@ -98,6 +98,12 @@ def get_job(request, job_id: str):
     return HTTPStatus.OK, Job.objects.get(id=job_id)
 
 
+@router.get("/jobs", response={HTTPStatus.OK: list[JobSchema]})
+def list_running_jobs(request):
+    running_container_ids = [container.id for container in _list_running_containers()]
+    return HTTPStatus.OK, Job.objects.filter(container_id__in=running_container_ids)
+
+
 @router.get("/jobs/{job_id}/status", response={HTTPStatus.OK: JobStatusSchema})
 def get_job_status(request, job_id: str):
     job = Job.objects.get(id=job_id)
