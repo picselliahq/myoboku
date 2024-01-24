@@ -10,7 +10,7 @@ class JobInput(Schema):
     nb_cpu: int
     nb_gpu: int
     env: dict[str, str]
-    docker_connector_id: Optional[UUID]
+    docker_connector_id: Optional[UUID] = None
 
 
 class JobSchema(Schema):
