@@ -25,12 +25,12 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/ping", response={HTTPStatus.OK: None}, operation_id="ping")
-def ping(_):
+def ping(request):
     return HTTPStatus.OK, None
 
 
 @router.post("/jobs", response={HTTPStatus.CREATED: JobSchema})
-def launch_job(_, payload: JobInput):
+def launch_job(request, payload: JobInput):
     if _is_overwhelmed():
         raise BadRequestException(detail=["Myoboku is overwhelmed"])
 
@@ -80,7 +80,7 @@ def launch_job(_, payload: JobInput):
 
 
 @router.put("/jobs/{job_id}/kill", response={HTTPStatus.OK: JobSchema})
-def kill_job(_, job_id: str):
+def kill_job(request, job_id: str):
     job = Job.objects.get(id=job_id)
 
     container = _get_container(job)
@@ -90,16 +90,16 @@ def kill_job(_, job_id: str):
         job.save()
         container.kill()
 
-    return HTTPStatus.NO_CONTENT, job
+    return HTTPStatus.OK, job
 
 
 @router.get("/jobs/{job_id}", response={HTTPStatus.OK: JobSchema})
-def get_job(_, job_id: str):
+def get_job(request, job_id: str):
     return HTTPStatus.OK, Job.objects.get(id=job_id)
 
 
 @router.get("/jobs/{job_id}/status", response={HTTPStatus.OK: JobStatusSchema})
-def get_job_status(_, job_id: str):
+def get_job_status(request, job_id: str):
     job = Job.objects.get(id=job_id)
     container = _get_container(job)
     status = DockerContainerEnum(container.status)
@@ -107,7 +107,7 @@ def get_job_status(_, job_id: str):
 
 
 @router.get("/jobs/{job_id}/logs", response={HTTPStatus.OK: JobLogsSchema})
-def get_logs(_, job_id: str):
+def get_logs(request, job_id: str):
     job = Job.objects.get(id=job_id)
 
     container = _get_container(job)
