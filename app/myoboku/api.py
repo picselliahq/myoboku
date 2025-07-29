@@ -131,6 +131,7 @@ def _run_docker(job_id: UUID, docker_image_name: str, docker_environment: list):
         stderr=True,
         detach=True,
         labels={"myoboku": settings.INSTANCE_NAME},
+        network=settings.DOCKER_NETWORK,
     )
     logger.info(f"Image {docker_image_name} pulled and run detached")
     job = Job.objects.get(id=job_id)

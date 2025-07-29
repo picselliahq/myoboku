@@ -73,6 +73,7 @@ USE_TZ = True
 
 MAXIMUM_RUNNING_CONTAINER = int(os.getenv("MAXIMUM_RUNNING_CONTAINERS", 1))
 INSTANCE_NAME = os.getenv("INSTANCE_NAME")
+DOCKER_NETWORK = os.getenv("DOCKER_NETWORK")
 
 # ================================================================================
 # Logging
