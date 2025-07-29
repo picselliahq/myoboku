@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=exec
 WorkingDirectory=/path/to/myoboku
-ExecStart=/path/to/poetry run scripts/run.py
+ExecStart=/path/to/poetry run python scripts/run.py
 User=%%USER%%
 Restart=on-failure
 RestartSec=5

@@ -80,4 +80,4 @@ if __name__ == "__main__":
 
     print(f"Myoboku {instance_name} set up!")
 
-    print("Run `python scripts/run.py`")
+    print("Run `poetry run python scripts/run.py`")

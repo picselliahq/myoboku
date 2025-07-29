@@ -3,15 +3,15 @@ Picsellia Job launcher
 
 ## Prerequisites
 
-* Python 3.10+
+* Python 3.13+
 * [Poetry](https://python-poetry.org/) to install the dependencies
 
 ## Setup and run
 
 ```shell
 poetry install
-poetry run scripts/setup.py
-poetry run scripts/run.py
+poetry run python scripts/setup.py
+poetry run python scripts/run.py
 ```
 
 ## Run myoboku with systemd

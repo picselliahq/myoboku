@@ -19,7 +19,7 @@ api = NinjaAPI(
     version="1",
     urls_namespace="api",
     renderer=ORJSONRenderer(),
-    description="Picsellia API",
+    description="Myoboku API",
     docs_url="/docs",
 )
 
