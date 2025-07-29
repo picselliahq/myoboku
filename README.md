@@ -10,8 +10,8 @@ Picsellia Job launcher
 
 ```shell
 poetry install
-poetry run scripts/setup.py
-poetry run scripts/run.py
+poetry run python scripts/setup.py
+poetry run python scripts/run.py
 ```
 
 ## Run myoboku with systemd
