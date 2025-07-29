@@ -3,7 +3,7 @@ Picsellia Job launcher
 
 ## Prerequisites
 
-* Python 3.10+
+* Python 3.13+
 * [Poetry](https://python-poetry.org/) to install the dependencies
 
 ## Setup and run
