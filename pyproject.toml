@@ -22,6 +22,7 @@ psycopg2-binary = "^2.9.9"
 orjson = "^3.11.1"
 essential-generators = "^1.0"
 docker = "^7.1.0"
+httpx = "^0.28.1"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.7.1"
