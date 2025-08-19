@@ -1,8 +1,8 @@
+import argparse
 import logging
 import time
 from threading import Thread
 
-import argparse
 import httpx
 
 from myoboku.external import docker_client
@@ -34,12 +34,12 @@ class JobService:
             environment=docker_environment,
             stdout=True,
             stderr=True,
-            detach=True,
+            detach=False,
             labels={"myoboku": self.instance_name},
             network=self.docker_network,
         )
         print(
-            f"Image {docker_image_name} pulled and run detached on container {container.id}"
+            f"Image {docker_image_name} pulled and run detached on container {container}"
         )
 
 

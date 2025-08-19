@@ -30,8 +30,14 @@ def update_default_connector(organization_id, user_api_token, instance_name):
     _ = call_picsellia(url, payload, headers)
 
 
+PULL = True
+
 if __name__ == "__main__":
     print("Let's set up Myoboku")
+    print(
+        "PULL=True, so it will be configured in PULL mode ! Myoboku as a server is not available at the moment"
+    )
+
     host = input("picsellia host [https://app.picsellia.com]:")
     if not host:
         host = "https://app.picsellia.com"
@@ -80,4 +86,9 @@ if __name__ == "__main__":
 
     print(f"Myoboku {instance_name} set up!")
 
-    print("Run `poetry run python scripts/run.py`")
+    if PULL:
+        print(
+            f'Run poetry run python scripts/pull.py --host="{host}" --instance="{instance_name}" --organization="{organization_id}" --sleep=10 --token="{user_api_token}"'
+        )
+    else:
+        print("Run `poetry run python scripts/run.py`")
