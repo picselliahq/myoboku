@@ -60,13 +60,18 @@ if __name__ == "__main__":
         print("Instance name can't be empty")
         sys.exit(1)
 
-    instance_url = input("url of this instance:")
-    if not instance_url:
-        print("Instance url can't be empty")
-        sys.exit(1)
+    if not PULL:
+        instance_url = input("url of this instance:")
+        if not instance_url:
+            print("Instance url can't be empty")
+            sys.exit(1)
+        instance_host = instance_url.removesuffix("/")
+        instance_domain = urlparse(instance_host).hostname
+    else:
+        # this won't be used by the platform
+        instance_url = "http://localhost:8000"
+        instance_domain = "http://localhost"
 
-    instance_host = instance_url.removesuffix("/")
-    instance_domain = urlparse(instance_host).hostname
     authentication_token = register_connector(
         organization_id, user_api_token, instance_name, instance_url
     )
