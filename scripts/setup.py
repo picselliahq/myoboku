@@ -69,25 +69,14 @@ if __name__ == "__main__":
         instance_domain = urlparse(instance_host).hostname
     else:
         # this won't be used by the platform
-        instance_url = "http://localhost:8000"
-        instance_domain = "http://localhost"
+        instance_url = f"https://{instance_name}.invalid"
+        instance_domain = f"{instance_name}.invalid"
 
     authentication_token = register_connector(
         organization_id, user_api_token, instance_name, instance_url
     )
     secret_key = secrets.token_hex(30)
     update_default_connector(organization_id, user_api_token, instance_name)
-
-    with open("./app/config/.env", "w+") as f:
-        f.write(f"AUTHENTICATION_TOKEN={authentication_token}\n")
-        f.write(f"ORGANIZATION_ID={organization_id}\n")
-        f.write("DEBUG=False\n")
-        f.write("LOGGERS_DEBUG=\n")
-        f.write("DJANGO_LOGLEVEL=INFO\n")
-        f.write(f"SECRET_KEY={secret_key}\n")
-        f.write(f"INSTANCE_NAME={instance_name}\n")
-        f.write(f"PICSELLIA_URL={host}\n")
-        f.write(f"ALLOWED_HOSTS={instance_domain}\n")
 
     print(f"Myoboku {instance_name} set up!")
 
@@ -96,4 +85,14 @@ if __name__ == "__main__":
             f'Run poetry run python scripts/pull.py --host="{host}" --instance="{instance_name}" --organization="{organization_id}" --sleep=10 --token="{user_api_token}"'
         )
     else:
+        with open("./app/config/.env", "w+") as f:
+            f.write(f"AUTHENTICATION_TOKEN={authentication_token}\n")
+            f.write(f"ORGANIZATION_ID={organization_id}\n")
+            f.write("DEBUG=False\n")
+            f.write("LOGGERS_DEBUG=\n")
+            f.write("DJANGO_LOGLEVEL=INFO\n")
+            f.write(f"SECRET_KEY={secret_key}\n")
+            f.write(f"INSTANCE_NAME={instance_name}\n")
+            f.write(f"PICSELLIA_URL={host}\n")
+            f.write(f"ALLOWED_HOSTS={instance_domain}\n")
         print("Run `poetry run python scripts/run.py`")
