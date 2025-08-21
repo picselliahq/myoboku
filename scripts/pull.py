@@ -47,6 +47,8 @@ class JobService:
                 print(f"killing job {job_id} container {container}")
                 container.stop(timeout=30)
                 print(f"killed job {job_id} container {container}")
+                self._mark_job_killed(job_id)
+                print(f"mark job {job_id} as killed")
                 break
 
             try:
@@ -78,6 +80,17 @@ class JobService:
             return body["status"].lower() == "killing"
         except JSONDecodeError:
             return False
+
+    @staticmethod
+    def _mark_job_killed(job_id: str) -> None:
+        path = f"{settings.host}/api/v2/job/{job_id}/killed"
+        response = httpx.post(
+            path,
+            headers={"Authorization": f"Bearer {settings.token}"},
+            timeout=30,
+            follow_redirects=True,
+        )
+        response.raise_for_status()
 
 
 def _run():
