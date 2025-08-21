@@ -1,12 +1,16 @@
 import argparse
+import json
 import logging
+import tempfile
 import time
 from dataclasses import dataclass
-from json import JSONDecodeError
+from datetime import UTC, datetime
 
 import docker
 import docker.errors
 import httpx
+import picsellia
+from docker.models.containers import Container
 from httpx import TransportError
 
 logger = logging.getLogger(__name__)
@@ -62,36 +66,64 @@ class JobService:
                 print(f"job {job_id} container {container} stopped")
                 break
 
-    @staticmethod
-    def _should_kill_job(job_id: str) -> bool:
-        path = f"{settings.host}/api/v2/job/{job_id}/status"
-        response = httpx.get(
-            path,
-            headers={"Authorization": f"Bearer {settings.token}"},
-            timeout=30,
-            follow_redirects=True,
-        )
-        if not response.is_success:
-            print(f"status error {response.status_code} calling {path}")
-            print(response.text)
-            return False
+        if container.status != "removing":
+            container.reload()
+            exit_code = container.attrs["State"]["ExitCode"]
+            if exit_code != 0:
+                print(f"uploading logs for job {job_id}")
+                self._save_container_logs(job_id, container)
+                self._mark_job_failed(job_id)
 
         try:
-            body = response.json()
-            return body["status"].lower() == "killing"
-        except JSONDecodeError:
-            return False
+            container.remove()
+        except docker.errors.NotFound:
+            pass
+        print(f"job {job_id} finished")
+
+    def _should_kill_job(self, job_id: str) -> bool:
+        status = self._get_job_status(job_id)
+        return status == "killing"
+
+    @staticmethod
+    def _get_job_status(job_id: str) -> str:
+        path = f"/api/v2/job/{job_id}/status"
+        response = client.connexion.get(path)
+        body = response.json()
+        return body["status"].lower()
 
     @staticmethod
     def _mark_job_killed(job_id: str) -> None:
-        path = f"{settings.host}/api/v2/job/{job_id}/killed"
-        response = httpx.post(
-            path,
-            headers={"Authorization": f"Bearer {settings.token}"},
-            timeout=30,
-            follow_redirects=True,
-        )
+        response = client.connexion.post(f"/api/v2/job/{job_id}/killed")
         response.raise_for_status()
+
+    @staticmethod
+    def _mark_job_failed(job_id: str) -> None:
+        response = client.connexion.post(f"/api/v2/job/{job_id}/fail")
+        response.raise_for_status()
+
+    @staticmethod
+    def _save_container_logs(job_id: str, container: Container) -> None:
+        with tempfile.NamedTemporaryFile("w+") as logs_file:
+            now = str(datetime.now(tz=UTC).isoformat())
+            formatted_logs = {
+                "--#--Initialize_run": {
+                    "logs": {
+                        str(line_nb): line.decode("utf-8")
+                        for line_nb, line in enumerate(container.logs(stream=True))
+                    },
+                    "datetime": now,
+                },
+                "exit_code": {
+                    "exit_code": str(container.attrs["State"]["ExitCode"]),
+                    "datetime": now,
+                },
+            }
+
+            json.dump(formatted_logs, logs_file)
+            logs_file.flush()
+
+            job = client.get_job_by_id(job_id)
+            job.store_logging_file(logs_file.name)
 
 
 def _run():
@@ -146,6 +178,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     settings = Settings(**args.__dict__)
     try:
+        client = picsellia.Client(
+            host=settings.host,
+            api_token=settings.token,
+            organization_id=settings.organization,
+        )
         _run()
     except KeyboardInterrupt:
         print("Shutting down..")
