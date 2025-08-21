@@ -7,6 +7,7 @@ from json import JSONDecodeError
 import docker
 import docker.errors
 import httpx
+from httpx import TransportError
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ class JobService:
             time.sleep(10)
             if self._should_kill_job(job_id):
                 print(f"killing job {job_id} container {container}")
-                container.stop(timeout=30)
+                container.stop()
                 print(f"killed job {job_id} container {container}")
                 self._mark_job_killed(job_id)
                 print(f"mark job {job_id} as killed")
@@ -95,18 +96,25 @@ class JobService:
 
 def _run():
     path = f"{settings.host}/api/organization/{settings.organization}/myoboku/jobs"
-    service = JobService(settings.instance, settings.organization)
+    service = JobService(settings.instance, settings.docker_network)
     while True:
-        response = httpx.post(
-            path,
-            json={"name": settings.instance},
-            headers={"Authorization": f"Bearer {settings.token}"},
-            timeout=30,
-        )
+        try:
+            response = httpx.post(
+                path,
+                json={"name": settings.instance},
+                headers={"Authorization": f"Bearer {settings.token}"},
+                timeout=30,
+            )
+        except TransportError as exc:
+            print(f"Transport Error: {exc!r}")
+            time.sleep(settings.sleep)
+            continue
+
         if response.status_code == 204:
             print("Nothing to do... waiting")
         elif response.status_code == 200:
             content = response.json()
+            print(content)
             service.start_job(
                 content["job_id"],
                 content["docker_image_name"],
