@@ -30,8 +30,14 @@ def update_default_connector(organization_id, user_api_token, instance_name):
     _ = call_picsellia(url, payload, headers)
 
 
+PULL = True
+
 if __name__ == "__main__":
     print("Let's set up Myoboku")
+    print(
+        "PULL=True, so it will be configured in PULL mode ! Myoboku as a server is not available at the moment"
+    )
+
     host = input("picsellia host [https://app.picsellia.com]:")
     if not host:
         host = "https://app.picsellia.com"
@@ -54,30 +60,39 @@ if __name__ == "__main__":
         print("Instance name can't be empty")
         sys.exit(1)
 
-    instance_url = input("url of this instance:")
-    if not instance_url:
-        print("Instance url can't be empty")
-        sys.exit(1)
+    if not PULL:
+        instance_url = input("url of this instance:")
+        if not instance_url:
+            print("Instance url can't be empty")
+            sys.exit(1)
+        instance_host = instance_url.removesuffix("/")
+        instance_domain = urlparse(instance_host).hostname
+    else:
+        # this won't be used by the platform
+        instance_url = f"https://{instance_name}.invalid"
+        instance_domain = f"{instance_name}.invalid"
 
-    instance_host = instance_url.removesuffix("/")
-    instance_domain = urlparse(instance_host).hostname
     authentication_token = register_connector(
         organization_id, user_api_token, instance_name, instance_url
     )
     secret_key = secrets.token_hex(30)
     update_default_connector(organization_id, user_api_token, instance_name)
 
-    with open("./app/config/.env", "w+") as f:
-        f.write(f"AUTHENTICATION_TOKEN={authentication_token}\n")
-        f.write(f"ORGANIZATION_ID={organization_id}\n")
-        f.write("DEBUG=False\n")
-        f.write("LOGGERS_DEBUG=\n")
-        f.write("DJANGO_LOGLEVEL=INFO\n")
-        f.write(f"SECRET_KEY={secret_key}\n")
-        f.write(f"INSTANCE_NAME={instance_name}\n")
-        f.write(f"PICSELLIA_URL={host}\n")
-        f.write(f"ALLOWED_HOSTS={instance_domain}\n")
-
     print(f"Myoboku {instance_name} set up!")
 
-    print("Run `poetry run python scripts/run.py`")
+    if PULL:
+        print(
+            f'Run poetry run python scripts/pull.py --host="{host}" --instance="{instance_name}" --organization="{organization_id}" --sleep=10 --token="{user_api_token}"'
+        )
+    else:
+        with open("./app/config/.env", "w+") as f:
+            f.write(f"AUTHENTICATION_TOKEN={authentication_token}\n")
+            f.write(f"ORGANIZATION_ID={organization_id}\n")
+            f.write("DEBUG=False\n")
+            f.write("LOGGERS_DEBUG=\n")
+            f.write("DJANGO_LOGLEVEL=INFO\n")
+            f.write(f"SECRET_KEY={secret_key}\n")
+            f.write(f"INSTANCE_NAME={instance_name}\n")
+            f.write(f"PICSELLIA_URL={host}\n")
+            f.write(f"ALLOWED_HOSTS={instance_domain}\n")
+        print("Run `poetry run python scripts/run.py`")
