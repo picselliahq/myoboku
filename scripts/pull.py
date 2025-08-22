@@ -11,6 +11,7 @@ import docker.errors
 import httpx
 import picsellia
 from docker.models.containers import Container
+from docker.types import DeviceRequest
 from httpx import TransportError
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ class JobService:
             detach=True,
             labels={"myoboku": self.instance_name},
             network=self.docker_network,
+            device_requests=[DeviceRequest(count=-1, capabilities=[["gpu"]])],
         )
         print(f"started container {container} run with image {docker_image_name}")
 
