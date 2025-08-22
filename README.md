@@ -11,8 +11,9 @@ Picsellia Job launcher
 ```shell
 poetry install
 poetry run python scripts/setup.py
-poetry run python scripts/run.py
 ```
+
+The command to run will be printed at the end of the setup script.
 
 ## Run myoboku with systemd
 
