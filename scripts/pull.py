@@ -146,7 +146,6 @@ def _run():
             print("Nothing to do... waiting")
         elif response.status_code == 200:
             content = response.json()
-            print(content)
             service.start_job(
                 content["job_id"],
                 content["docker_image_name"],
