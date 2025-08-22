@@ -11,7 +11,10 @@ import docker.errors
 import httpx
 import picsellia
 from docker.models.containers import Container
+from docker.types import DeviceRequest
 from httpx import TransportError
+
+from scripts.utils import has_gpu
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +27,7 @@ class JobService:
             base_url="unix:///var/run/docker.sock", version="auto"
         )
         self.docker_client.ping()
+        self.has_gpu = has_gpu()
 
     def start_job(self, job_id: str, docker_image_name: str, env: dict):
         print(f"pulling image {docker_image_name}")
@@ -35,6 +39,9 @@ class JobService:
         self, job_id: str, docker_image_name: str, docker_environment: list
     ):
         print(f"starting job {job_id} container with image {docker_image_name}")
+        device_request = (
+            [DeviceRequest(count=-1, capabilities=[["gpu"]])] if self.has_gpu else None
+        )
         container = self.docker_client.containers.run(
             docker_image_name,
             environment=docker_environment,
@@ -43,6 +50,7 @@ class JobService:
             detach=True,
             labels={"myoboku": self.instance_name},
             network=self.docker_network,
+            device_requests=device_request,
         )
         print(f"started container {container} run with image {docker_image_name}")
 
