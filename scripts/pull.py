@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import subprocess
 import tempfile
 import time
 from dataclasses import dataclass
@@ -14,9 +15,23 @@ from docker.models.containers import Container
 from docker.types import DeviceRequest
 from httpx import TransportError
 
-from scripts.utils import has_gpu
 
 logger = logging.getLogger(__name__)
+
+
+def has_gpu():
+    try:
+        subprocess.run(
+            ["nvidia-smi"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+        return True
+    except subprocess.CalledProcessError:
+        return False
+    except FileNotFoundError:
+        return False
 
 
 class JobService:
