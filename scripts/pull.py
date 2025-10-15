@@ -66,6 +66,7 @@ class JobService:
             labels={"myoboku": self.instance_name},
             network=self.docker_network,
             device_requests=device_request,
+            shm_size="5G",
         )
         print(f"started container {container} run with image {docker_image_name}")
 
