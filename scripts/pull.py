@@ -15,7 +15,6 @@ from docker.models.containers import Container
 from docker.types import DeviceRequest
 from httpx import TransportError
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -93,7 +92,9 @@ class JobService:
         if container.status != "removing":
             container.reload()
             exit_code = container.attrs["State"]["ExitCode"]
-            if exit_code != 0:
+            if exit_code == 1:
+                print(f"job {job_id} finished with status code 1")
+            elif exit_code != 0:
                 print(f"uploading logs for job {job_id}")
                 self._save_container_logs(job_id, container)
                 self._mark_job_failed(job_id)
