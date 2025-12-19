@@ -13,7 +13,9 @@ import httpx
 import picsellia
 from docker.models.containers import Container
 from docker.types import DeviceRequest
+from docker.utils import parse_repository_tag
 from httpx import TransportError
+from rich.progress import Progress
 
 logger = logging.getLogger(__name__)
 
@@ -44,10 +46,37 @@ class JobService:
         self.has_gpu = has_gpu()
 
     def start_job(self, job_id: str, docker_image_name: str, env: dict):
-        print(f"pulling image {docker_image_name}")
-        self.docker_client.images.pull(docker_image_name)
+        print(f"Pulling image: {docker_image_name}")
+        repository, image_tag = parse_repository_tag(docker_image_name)
+        tag = image_tag or "latest"
+        self._pull_image(repository, tag)
         docker_environment = [f"{key}={value}" for key, value in env.items()]
         self._run_container(job_id, docker_image_name, docker_environment)
+
+    def _pull_image(self, repository: str, tag: str) -> None:
+        with Progress() as progress:
+            tasks = {}
+            resp = self.docker_client.api.pull(
+                repository, tag=tag, stream=True, decode=True
+            )
+            for line in resp:
+                self._show_progress(tasks, line, progress)
+
+    @staticmethod
+    def _show_progress(tasks: dict, line: dict, progress: Progress):
+        if line["status"] == "Downloading":
+            id = f"[red][Download {line['id']}]"
+        elif line["status"] == "Extracting":
+            id = f"[green][Extract  {line['id']}]"
+        else:
+            return
+
+        if id not in tasks.keys():
+            tasks[id] = progress.add_task(
+                f"{id}", total=line["progressDetail"]["total"]
+            )
+        else:
+            progress.update(tasks[id], completed=line["progressDetail"]["current"])
 
     def _run_container(
         self, job_id: str, docker_image_name: str, docker_environment: list
