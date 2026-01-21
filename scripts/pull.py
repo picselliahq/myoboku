@@ -72,9 +72,12 @@ class JobService:
             return
 
         if id not in tasks.keys():
-            tasks[id] = progress.add_task(
-                f"{id}", total=line["progressDetail"]["total"]
-            )
+            try:
+                tasks[id] = progress.add_task(
+                    f"{id}", total=line["progressDetail"]["total"]
+                )
+            except KeyError:
+                pass
         else:
             progress.update(tasks[id], completed=line["progressDetail"]["current"])
 
