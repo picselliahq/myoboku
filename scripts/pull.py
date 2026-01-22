@@ -49,9 +49,13 @@ class JobService:
         print(f"Pulling image: {docker_image_name}")
         repository, image_tag = parse_repository_tag(docker_image_name)
         tag = image_tag or "latest"
-        self._pull_image(repository, tag)
-        docker_environment = [f"{key}={value}" for key, value in env.items()]
-        self._run_container(job_id, docker_image_name, docker_environment)
+        try:
+            self._pull_image(repository, tag)
+            docker_environment = [f"{key}={value}" for key, value in env.items()]
+            self._run_container(job_id, docker_image_name, docker_environment)
+        except docker.errors.ImageNotFound as e:
+            print(str(e))
+            self._mark_job_failed(job_id)
 
     def _pull_image(self, repository: str, tag: str) -> None:
         with Progress() as progress:
@@ -59,6 +63,7 @@ class JobService:
             resp = self.docker_client.api.pull(
                 repository, tag=tag, stream=True, decode=True
             )
+
             for line in resp:
                 self._show_progress(tasks, line, progress)
 
