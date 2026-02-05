@@ -500,59 +500,43 @@ files = [
 
 [[package]]
 name = "picsellia"
-version = "6.24.0"
+version = "6.29.0"
 description = "Python SDK package for Picsellia MLOps platform"
 optional = false
-python-versions = ">=3.9"
+python-versions = "<3.15,>=3.10"
 groups = ["main"]
 files = [
-    {file = "picsellia-6.24.0-py3-none-any.whl", hash = "sha256:4135341dacf4957ebe7d69278269b2b3021983368592134410c986707a11f268"},
-    {file = "picsellia-6.24.0.tar.gz", hash = "sha256:506f624022b32d610fd613e292e66874054738019e652de72058ae85ed79ef64"},
+    {file = "picsellia-6.29.0-py3-none-any.whl", hash = "sha256:78c5ecdad080c56393c8ca1abce1dc759ec640a209fc5bb411e9b8be7b8801c2"},
+    {file = "picsellia-6.29.0.tar.gz", hash = "sha256:17c645039d802b575d8e195071d44c05afd5f4cbf7b744bbbb6411b4eeb49474"},
 ]
 
 [package.dependencies]
 beartype = ">=0.16.0"
 deprecation = ">=2.1.0,<3.0.0"
 orjson = ">=3.9"
-picsellia-annotations = ">=0.9.0,<0.10.0"
-picsellia-connexion-services = ">=0.2.0,<0.3.0"
+picsellia-annotations = ">=0.12.1,<0.13.0"
 Pillow = ">=9.2.0"
 pydantic = ">=2,<3"
 pyyaml = ">=6.0.1,<7.0.0"
-requests = ">=2.28"
+requests = ">=2.32"
 semantic-version = ">=2.10.0,<3.0.0"
 tqdm = ">=4.66.5,<5.0.0"
 
 [[package]]
 name = "picsellia-annotations"
-version = "0.9.1"
+version = "0.12.1"
 description = "Package with pydantic schemas of COCO files and VOC File and some utils to read those annotations files"
 optional = false
-python-versions = "<4.0,>=3.8"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "picsellia_annotations-0.9.1-py3-none-any.whl", hash = "sha256:753337255d1e247a76cea78e5e6bb2e79592b5aa314f85486d9c8b0faa2eaf95"},
-    {file = "picsellia_annotations-0.9.1.tar.gz", hash = "sha256:a68dae059927b91d34e6e04167243fdcfd66c34aa1fc96a81693d1246637eb78"},
+    {file = "picsellia_annotations-0.12.1-py3-none-any.whl", hash = "sha256:a04fe79f7d66faf41437dbcfd22e7aeb98af7348d94b4ac8214fd6daac41f078"},
+    {file = "picsellia_annotations-0.12.1.tar.gz", hash = "sha256:2e702d7ace09bccdd82773060e07832df31cdb85e344f88d516f504342aad823"},
 ]
 
 [package.dependencies]
 pydantic = ">=2.0.0,<3.0.0"
-xmltodict = ">=0.13.0,<0.14.0"
-
-[[package]]
-name = "picsellia-connexion-services"
-version = "0.2.1"
-description = "Package for connection to Picsellia platforms with some wrapper around requests library"
-optional = false
-python-versions = ">=3.7,<4.0"
-groups = ["main"]
-files = [
-    {file = "picsellia_connexion_services-0.2.1-py3-none-any.whl", hash = "sha256:0f9603525762594d7a1ab5182d122f68a3f7304a7941e820c0844768082ceee0"},
-    {file = "picsellia_connexion_services-0.2.1.tar.gz", hash = "sha256:c0e8803a86187099288bfef065d79f8de137abbe5b8e1b9f8843a00f8cf82802"},
-]
-
-[package.dependencies]
-requests = ">=2.28,<3.0"
+xmltodict = ">=1.0.0,<2.0.0"
 
 [[package]]
 name = "pillow"
@@ -1117,17 +1101,20 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 
 [[package]]
 name = "xmltodict"
-version = "0.13.0"
+version = "1.0.2"
 description = "Makes working with XML feel like you are working with JSON"
 optional = false
-python-versions = ">=3.4"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "xmltodict-0.13.0-py2.py3-none-any.whl", hash = "sha256:aa89e8fd76320154a40d19a0df04a4695fb9dc5ba977cbb68ab3e4eb225e7852"},
-    {file = "xmltodict-0.13.0.tar.gz", hash = "sha256:341595a488e3e01a85a9d8911d8912fd922ede5fecc4dce437eb4b6c8d037e56"},
+    {file = "xmltodict-1.0.2-py3-none-any.whl", hash = "sha256:62d0fddb0dcbc9f642745d8bbf4d81fd17d6dfaec5a15b5c1876300aad92af0d"},
+    {file = "xmltodict-1.0.2.tar.gz", hash = "sha256:54306780b7c2175a3967cad1db92f218207e5bc1aba697d887807c0fb68b7649"},
 ]
+
+[package.extras]
+test = ["pytest", "pytest-cov"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = "^3.13"
-content-hash = "fdd66e919f9afcae6ca19ac84391a6d5355d06b04921a42b6efd09cef2eb2dbd"
+python-versions = ">=3.13,<3.15"
+content-hash = "42d427c5a39d4b6319898eed39364da17f0bd680f70ef663b16348e8eeb2a45f"
