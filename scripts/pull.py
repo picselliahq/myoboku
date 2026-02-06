@@ -67,8 +67,8 @@ class JobService:
             for line in resp:
                 try:
                     self._show_progress(tasks, line, progress)
-                except KeyError as e:
-                    print(str(e))
+                except KeyError:
+                    continue
 
     @staticmethod
     def _show_progress(tasks: dict, line: dict, progress: Progress):
