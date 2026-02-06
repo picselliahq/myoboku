@@ -65,7 +65,10 @@ class JobService:
             )
 
             for line in resp:
-                self._show_progress(tasks, line, progress)
+                try:
+                    self._show_progress(tasks, line, progress)
+                except KeyError:
+                    continue
 
     @staticmethod
     def _show_progress(tasks: dict, line: dict, progress: Progress):
@@ -131,6 +134,21 @@ class JobService:
             exit_code = container.attrs["State"]["ExitCode"]
             if exit_code == 1:
                 print(f"job {job_id} finished with status code 1")
+                now = str(datetime.now(tz=UTC).isoformat())
+                formatted_logs = {
+                    "--#--Initialize_run": {
+                        "logs": {
+                            str(line_nb): line.decode("utf-8")
+                            for line_nb, line in enumerate(container.logs(stream=True))
+                        },
+                        "datetime": now,
+                    },
+                    "exit_code": {
+                        "exit_code": str(container.attrs["State"]["ExitCode"]),
+                        "datetime": now,
+                    },
+                }
+                print(formatted_logs)
             elif exit_code != 0:
                 print(f"uploading logs for job {job_id}")
                 self._save_container_logs(job_id, container)
